@@ -1,0 +1,3 @@
+1. the moment we run doker compose up -d,  It takes the configuration (docker compose yaml) file and instantly launches a fully configured, isolated server on the machine without us having to install Postgres natively, or any service that we might require. so docker compose is like a blueprint for services thatw eneed from docker
+
+2. when we create config file, its kinda imp to understand what its actual need is. As name suggests, it stores all configurations that we will need. A configuration is something that we know will change per environment. Like DB stuff, secrets, env falgs and feature flags etc
