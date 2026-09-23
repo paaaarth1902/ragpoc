@@ -28,7 +28,7 @@ __branch__ = feat/markdown-loader
 2. This is a start of ingestion pipeline - wherein we implement abse file that will act as a blueprint
 3. We will need base as we will need consistent input for our downstream stages
 4. Implement base.py that has Loader class, and has structure of PrasedDocument that is expected
-5. Implement markdown loader that will be built on base
+5. Implement markdown loader, wherein we fulffil the contract by implementing the load method (so basically duck typing)
 6. This markdown loader will split the front-matter and YAMlise into a dict, convert normal flat lines into sections [flush() + buffer + stack]
 7. Test it with demo md file
 8. Implement a CLI script that will parse one .md file using argparse and return structure as we desire.
@@ -37,5 +37,13 @@ __branch__ = feat/markdown-loader
 11. test with pyyaml
 12. Commit to feature branch
 
+----------------------------------------------------------------------------------------------------------------------
+__branch__ = feat/chunker
 
+1. A chunker's job is to break each parsed doc into pieces small enough so they can be embedded accurately, but big enough that doesnt destroy the overall sematics of it all
+2. This chunker will produce a list of chunks for us which we will pass to the embedder. 
+3. we need to finalize where do we split? what exactly should be the chunk size.
+4. There needs to be a sweet spot between 200 tokens (a small chunk size) to 1500 token(a large chunk size)
+5. Lets say we finalize at 600 tokens, as in each chunk will be of 600 tokens
+6. Post that we can finalize 80 tokens as `overlap` - when splitting oversized section into, lets say 2 chunks, resulting chunks share some text at boundary and last 80 80 tokens of chunk A also appear in cunk b
 
