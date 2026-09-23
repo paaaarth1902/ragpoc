@@ -8,7 +8,6 @@ def make_engine() -> AsyncEngine:
     settings = get_settings()
     return create_async_engine(settings.database_url, pool_pre_ping=True, pool_size=5, max_overflow=10)
 
-
 engine: AsyncEngine = make_engine()
 
 SessionLocal: async_sessionmaker[AsyncSession] = async_sessionmaker(engine, expire_on_commit=False, autoflush=True)

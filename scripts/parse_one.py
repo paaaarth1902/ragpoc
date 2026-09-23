@@ -29,6 +29,5 @@ def main() -> None:
         path_str = str(section.heading_path)
         print(f"  {path_str:<50}  {len(section.content):>5} chars")
 
-
 if __name__ == "__main__":
     main()
