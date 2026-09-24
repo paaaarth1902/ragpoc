@@ -13,3 +13,5 @@ We implement this in the base loader which has a dataclass of ParsedDocument, wh
 
 7. We build one markdown loader extending this Base Loader that returns Front matter and sections. 
 We use stacks to manage how headings and their content will be pushed.
+
+8. Chunking splits a ParsedDocument into small, semantically-focused pieces (400–600 tokens each, with 80 tokens of overlap at split boundaries) so each piece can be embedded into a sharp, topical vector. Tiktoken is used as an exact token counter to keep chunks under the target size and never exceed the embedding API's hard limit.

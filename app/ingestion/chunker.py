@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 import tiktoken
-
 from app.ingestion.loaders.base import ParsedDocument, Section
 
 DEFAULT_MAX_TOKENS = 600
