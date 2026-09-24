@@ -36,46 +36,51 @@ class MarkdownLoader:
 
     '''Convert the normal lines present in file to Section objects'''
     def _parse_sections(self, body: str) -> list[Section]:
+    
         sections: list[Section] = []
-        stack: list[str] = []                    
-        current_level = 0                        
-        buffer: list[str] = []                   
+        stack: list[tuple[int, str]] = []
+        current_lines: list[str] = []
+        current_level: int = 0
 
-        # call this utlity every time we're about to move to new section - basically save and reset
-        
         def flush() -> None:
             if not stack:
                 return
-            content = "\n".join(buffer).strip()
+            content = "\n".join(current_lines).strip()
             if not content:
                 return
             sections.append(
                 Section(
-                    heading_path=list(stack),    # copy: stack keeps mutating
+                    heading_path=[text for _, text in stack],
                     heading_level=current_level,
                     content=content,
                 )
             )
-        # if its regular line, append it to buffer. Keep accumulating buffer and as soon as heading is encoutered, package the accumulated text and start working under new heading
-        for line in body.splitlines():
-            heading = _HEADING_RE.match(line)
-            if heading is None:
-                buffer.append(line)
-                continue
-            
-            # if its heading, wat level it is
-            level = len(heading.group(1))
-            title = heading.group(2).strip()
 
-            # First H1 is the document title. Skip it.
+        for line in body.splitlines():
+            match = _HEADING_RE.match(line)
+            if match is None:
+                current_lines.append(line)
+                continue
+
+            level = len(match.group(1))
+            text = match.group(2).strip()
+
+            # Skip the very first H1 — treat it as the document title, already
+            # captured by front_matter or exposed via ParsedDocument.title.
             if level == 1 and not stack and not sections:
                 continue
-            
+
+            # Close out whatever section we were building.
             flush()
-            buffer.clear() # clear buffer
-            del stack[level - 1:]    # trim to depth level-1
-            stack.append(title) # add new heading to stack
-            current_level = level   # update active level
+            current_lines = []
+
+            # Pop any headings at this level or deeper — they are siblings or
+            # descendants of the incoming heading, not ancestors.
+            while stack and stack[-1][0] >= level:
+                stack.pop()
+
+            stack.append((level, text))
+            current_level = level
 
         flush()
         return sections

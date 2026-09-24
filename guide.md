@@ -46,4 +46,5 @@ __branch__ = feat/chunker
 4. There needs to be a sweet spot between 200 tokens (a small chunk size) to 1500 token(a large chunk size)
 5. Lets say we finalize at 600 tokens, as in each chunk will be of 600 tokens
 6. Post that we can finalize 80 tokens as `overlap` - when splitting oversized section into, lets say 2 chunks, resulting chunks share some text at boundary and last 80 80 tokens of chunk A also appear in cunk b
+7. Tiktoken is used as an exact token counter to keep chunks under the target size and never exceed the embedding API's hard limit.
 
