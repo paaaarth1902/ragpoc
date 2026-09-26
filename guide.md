@@ -48,3 +48,13 @@ __branch__ = feat/chunker
 6. Post that we can finalize 80 tokens as `overlap` - when splitting oversized section into, lets say 2 chunks, resulting chunks share some text at boundary and last 80 80 tokens of chunk A also appear in cunk b
 7. Tiktoken is used as an exact token counter to keep chunks under the target size and never exceed the embedding API's hard limit.
 
+----------------------------------------------------------------------------------------------------------------------
+__branch__ = feat/embedder
+
+1. Before making any calls to OpenAI's embedding API, implementing a fake embedder to mock the service and understand shape and dimensions.
+2. this will live in embedding layer, parallel to the ingestion layer
+3. First understand and define what embedder is and what any embedded chunk will look like in action
+4. The EmbeddedChunk inherits props of Chunk and adds a vector attribute which is list of floatts and a Embedder protocol with dim and a embed method. meaning any class implementing this method and var will automatically satify embedder
+5. Post this implement a mock embedder with help of hashlib.sha256.
+6. We will have a embed function defined in FakeEmbdder, which takes n strings, returnong n vectors
+7. This is done by one of helper methods that actually creates the vectors for us (still mock)

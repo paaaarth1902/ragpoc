@@ -11,7 +11,7 @@ DEFAULT_OVERLAP_TOKENS = 80
 DEFAULT_MODEL = "text-embedding-3-small"
 
 # stores content in Chunk
-@dataclass(slots=True)
+@dataclass(frozen=True, slots=True)
 class Chunk:
     content: str
     heading_path: list[str]
@@ -19,13 +19,19 @@ class Chunk:
     chunk_index: int
     token_count: int
 
-# 
+
 @lru_cache(maxsize=8)
-def _get_encoder(model: str) -> tiktoken.Encoding:
-    return tiktoken.encoding_for_model(model)
+def _get_encoder(model_or_encoding: str = DEFAULT_MODEL) -> tiktoken.Encoding:
+    """Retrieves encoder by model name or directly by encoding name as fallback."""
+    try:
+        return tiktoken.encoding_for_model(model_or_encoding)
+    except KeyError:
+        return tiktoken.get_encoding(model_or_encoding)
+
 
 def _count_tokens(text: str, model: str) -> int:
     return len(_get_encoder(model).encode(text))
+
 
 # Paragraph breaks
 _PARAGRAPH_SPLIT = re.compile(r"\n\s*\n")
@@ -33,13 +39,16 @@ _PARAGRAPH_SPLIT = re.compile(r"\n\s*\n")
 # Splits on sentence terminators followed by whitespace.
 _SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
 
+
 def _split_into_units(text: str) -> list[str]:
     """Split text into paragraphs; fall back to sentences for oversized paragraphs."""
     paragraphs = [p.strip() for p in _PARAGRAPH_SPLIT.split(text) if p.strip()]
     return paragraphs
 
+
 def _split_paragraph_into_sentences(paragraph: str) -> list[str]:
     return [s.strip() for s in _SENTENCE_SPLIT.split(paragraph) if s.strip()]
+
 
 def _pack_units(
     units: list[str],
@@ -62,7 +71,7 @@ def _pack_units(
                 chunks.append("\n\n".join(current))
                 current = []
                 current_tokens = 0
-            chunks.extend(_hard_split(unit, max_tokens, overlap_tokens, encoder))
+            chunks.extend(_hard_split(unit, max_tokens, overlap_tokens, model))
             continue
 
         # Would adding this unit exceed max? Emit current, start fresh with overlap.
@@ -79,18 +88,20 @@ def _pack_units(
         chunks.append("\n\n".join(current))
     return chunks
 
+
 def _hard_split(
     text: str,
     max_tokens: int,
     overlap_tokens: int,
-    encoder: tiktoken.Encoding,
+    model: str,
 ) -> list[str]:
     """Fallback: split a giant paragraph by sentences, then by raw tokens if a sentence itself is too big."""
     sentences = _split_paragraph_into_sentences(text)
     if len(sentences) > 1:
-        return _pack_units(sentences, max_tokens, overlap_tokens, encoder.name)
+        return _pack_units(sentences, max_tokens, overlap_tokens, model)
 
     # A single sentence exceeds max_tokens — chop at the token level.
+    encoder = _get_encoder(model)
     tokens = encoder.encode(text)
     chunks: list[str] = []
     step = max_tokens - overlap_tokens
@@ -101,6 +112,7 @@ def _hard_split(
             break
     return chunks
 
+
 def _tail_overlap(text: str, overlap_tokens: int, encoder: tiktoken.Encoding) -> str:
     """Return the trailing ~overlap_tokens tokens of `text` as a decoded string."""
     if overlap_tokens <= 0:
@@ -109,6 +121,7 @@ def _tail_overlap(text: str, overlap_tokens: int, encoder: tiktoken.Encoding) ->
     if len(tokens) <= overlap_tokens:
         return text
     return encoder.decode(tokens[-overlap_tokens:])
+
 
 def chunk_section(
     section: Section,
@@ -143,6 +156,7 @@ def chunk_section(
         )
         for i, text in enumerate(packed)
     ]
+
 
 def chunk_document(
     document: ParsedDocument,
