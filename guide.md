@@ -58,3 +58,11 @@ __branch__ = feat/embedder
 5. Post this implement a mock embedder with help of hashlib.sha256.
 6. We will have a embed function defined in FakeEmbdder, which takes n strings, returnong n vectors
 7. This is done by one of helper methods that actually creates the vectors for us (still mock)
+8. Once tested, implement actual embedding with openAI's [text-embedding-3-small] model
+9. This will take a strem of texts, batch it into like 100 tokens, sending it to OpenAI client.
+10. OpenAI will process them and send a response of lists of list with each inner list having 1536 numbers, which we will pull out and collect the numbers and store them in some list and return that list.
+11. Test theis with some sample stream of sentences by passing them to the embedder and observe what is the o/p
+12. A wrapper can be implemented which will retry API call if errors like 429, 500, 502 happen, but errors like 401, 403 wont be. We can have unit test for this too which will mock the external call and see if retrying actually happens.
+13. We pass the chunked doc to this RetryingEmbedder wrapper, which passes this to our actual caller to send chunks to OpenAI for embedding
+
+----------------------------------------------------------------------------------------------------------------------
