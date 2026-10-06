@@ -7,7 +7,8 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.db.models import Document, DocumentChunk
-from app.embeddings.fake import FakeEmbedder, embed_chunks
+from app.embeddings.fake import FakeEmbedder
+from app.ingestion.pipeline import embed_chunks
 from app.ingestion.chunker import chunk_document
 from app.ingestion.loaders.markdown import MarkdownLoader
 from app.ingestion.persist import persist_document
