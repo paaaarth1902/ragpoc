@@ -1,5 +1,6 @@
 import pytest
-from app.embeddings.fake import FakeEmbedder, embed_chunks
+from app.embeddings.fake import FakeEmbedder
+from app.ingestion.pipeline import embed_chunks
 from app.ingestion.chunker import Chunk
 
 def _make_chunk(content: str, idx: int = 0) -> Chunk:
