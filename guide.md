@@ -66,3 +66,22 @@ __branch__ = feat/embedder
 13. We pass the chunked doc to this RetryingEmbedder wrapper, which passes this to our actual caller to send chunks to OpenAI for embedding
 
 ----------------------------------------------------------------------------------------------------------------------
+
+__branch__ = feat/first-http-endpoints
+
+1. up untill now we are relying on seed_corpus scripts and various other scripts such as embed_one and all. Now we can move this to more production ready states like  applications so users can access.
+2. For this, 2 HTTP endpoints will be created, both of which will be living in the ingestion plane
+3. one will be POST /documents which will do all the heavy lifting including accepting and saving file, parsing it, chunking it, embedding it and storing it in DB
+4. Other will be GET /jobs/{id}, that will simple handle `is the job done?`
+5. Its also important to note that all of the steps mentioned for POST /documents will not be gandled solely by thsi endpoint in one go, sequentially
+6. fast jobs will be executed immedialtely like saving the uploaded file to disk, creating job row and returning job_id, whereas other stuff, time taking stuff will be handled as part of background tasks. This includes parsing, chunking, embedding, storing, updating job row etc.
+7. First, a document ingestion and saving file to disk stuff can be handled - w/o the BG stuff in documets.py
+8. Once we get 202, meaning file is accepted and saved to disk, we can trigger a BG task that picks up the job and runs actua pipeline. This task can live inside a different worker file.
+9. This is because BG task needs to do work AFTER the response has been sent. 
+10. This worker will have one resource allocation blcok that sets up brand new Db session as HTTP request that triggered the task is already finished, (202 one) and DB connection session must have been destroyed
+11. In worker post allocation, we can mark ongoing job as running in step 1
+12. In step 2 we can do all our I/O stuff and keep this outside DB transaction and pass the session only if seed_document saves to DB at the end
+13. Mark job as succeded if session is succesfully completed and throw exception if not.
+14. Its also very important to perform idempotency check post running to see if we upload same doc or runbook tewo times, the content hash check is working and NO NEW CHUNKS GET ADDED
+
+----------------------------------------------------------------------------------------------------------------------
