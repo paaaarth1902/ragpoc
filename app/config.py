@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     postgres_port: int = 5432
     postgres_db: str
     database_url: str
+    openai_api_key: str
 
 @lru_cache
 def get_settings() -> Settings:

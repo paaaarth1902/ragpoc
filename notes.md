@@ -17,3 +17,6 @@ We use stacks to manage how headings and their content will be pushed.
 8. Chunking splits a ParsedDocument into small, semantically-focused pieces (400–600 tokens each, with 80 tokens of overlap at split boundaries) so each piece can be embedded into a sharp, topical vector. Tiktoken is used as an exact token counter to keep chunks under the target size and never exceed the embedding API's hard limit.
 
 9. A chunked document helps for better embedding by semantically grouping texts so it can be sent to embedder. Lets say we are using text-embedding-3-small model (OpenAI small model),
+
+10. While creating Pydantic schemaas, it can be thought of as a guard sitting on HTTP boundary and making sure that incoming and outgoing data is of declared schema and follows declared skeleton
+
