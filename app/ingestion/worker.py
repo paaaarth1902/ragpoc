@@ -6,20 +6,21 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.config import get_settings
 from app.db.models import IngestionJob
-from app.embeddings.openai import OpenAIEmbedder
-from app.embeddings.retry import RetryingEmbedder
+# from app.embeddings.openai import OpenAIEmbedder
+# from app.embeddings.retry import RetryingEmbedder
+from app.embeddings.types import Embedder
 from app.ingestion.seed import seed_document
 
 UPLOAD_DIR = Path("corpus/uploads")
 
-async def run_ingestion_job(job_id: UUID, stored_filename: str) -> None:
+async def run_ingestion_job(job_id: UUID, stored_filename: str, embedder: Embedder) -> None:
     settings = get_settings()
     # resource allocation block
     engine = create_async_engine(settings.database_url)
     maker = async_sessionmaker(engine, expire_on_commit=False)
 
     client = AsyncOpenAI(api_key=settings.openai_api_key)
-    embedder = RetryingEmbedder(inner=OpenAIEmbedder(client=client))
+    # embedder = RetryingEmbedder(inner=OpenAIEmbedder(client=client)) - this should be injected and not created
     path = UPLOAD_DIR / stored_filename
 
     try:
@@ -45,5 +46,5 @@ async def run_ingestion_job(job_id: UUID, stored_filename: str) -> None:
                 job.status = "failed"
                 job.error = f"{type(exc).__name__}: {exc}"
     finally:
-        await client.close()
+        # await client.close() - not needed as embedders lifecycle is owned by whoever creates it.
         await engine.dispose()

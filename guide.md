@@ -84,4 +84,13 @@ __branch__ = feat/first-http-endpoints
 13. Mark job as succeded if session is succesfully completed and throw exception if not.
 14. Its also very important to perform idempotency check post running to see if we upload same doc or runbook tewo times, the content hash check is working and NO NEW CHUNKS GET ADDED
 
+--------------------------------------------------------
+
+15. Once we build the endpoint and background task for ingestion, we can verify by runnign SQL query on DB, that whats the current status of job
+16. This should be delegated to another endpoint, GET /jobs/{jobID} this time. This endpoint will just create an async session and return 200 along with status if jobID is valid
+17. Once we test this, Integration testing needs to happen and for this to happen, we will need DI as real worker calls OpenAI and testing shouldnt incur any costs for us. 
+18. A small refactoring of run_ingestion_job by moving embedder into different file and injecting it in actual calls.
+19. Moving hardcoded embedder into different file makes it untestable while testing and injecting it makes it swappable.
+20. Post this remains designing pytest fixtures to test both endpoints for all scenarios like valid job Id, invalid job ID, idempotency test, client availability, etc.
+
 ----------------------------------------------------------------------------------------------------------------------
