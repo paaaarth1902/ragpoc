@@ -29,12 +29,10 @@ async def run_ingestion_job(job_id: UUID, stored_filename: str, embedder: Embedd
                 job = await session.get(IngestionJob, job_id)
                 job.status = "running"
 
-        async with maker() as session:
-            doc_id, was_new = await seed_document(session, path, embedder)
-
-        # Step 3: Mark job as "succeeded" - fresh session
+        # document insert AND job update in ONE transaction — both commit together
         async with maker() as session:
             async with session.begin():
+                doc_id, was_new = await seed_document(session, path, embedder)
                 job = await session.get(IngestionJob, job_id)
                 job.status = "succeeded"
                 job.document_id = doc_id
@@ -46,5 +44,4 @@ async def run_ingestion_job(job_id: UUID, stored_filename: str, embedder: Embedd
                 job.status = "failed"
                 job.error = f"{type(exc).__name__}: {exc}"
     finally:
-        # await client.close() - not needed as embedders lifecycle is owned by whoever creates it.
         await engine.dispose()
