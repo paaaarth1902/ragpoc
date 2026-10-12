@@ -94,3 +94,14 @@ __branch__ = feat/first-http-endpoints
 20. Post this remains designing pytest fixtures to test both endpoints for all scenarios like valid job Id, invalid job ID, idempotency test, client availability, etc.
 
 ----------------------------------------------------------------------------------------------------------------------
+
+__branch__ = feat/query-pane-setup
+
+1. The ingestion is just one of the core components in the process whoch happens behind the scenes, ahea of time. 
+2. To summarise, we parse the document in valid loader format and create chunks of this doc and store in table, then we pass the chunks to the embedding model and. get valid embeddings for each chunk and store these embeddings.
+3. As for query, the question that end user posts will follow similar path but the components wont be living in same layer as ingestion.
+4. This is the query plane now, Take question, tokenise it, chunk it embed it, DO NOT WRITE ANYTHING TO DB.
+5. We arent supposed to write anything in database in this phase now. we dont store chunks in db now.
+6. We read the db chunks, perform ops and provide response.
+7. Now there are many nuances with this step.
+8. To setup the skeletion of process, definition file which will host RetrievedChunk dataclass and Retriever protocol is created. ALong with that, one embed file that will transform the question string to vectors by calling .embed()
