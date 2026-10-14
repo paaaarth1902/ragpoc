@@ -105,3 +105,33 @@ __branch__ = feat/query-pane-setup
 6. We read the db chunks, perform ops and provide response.
 7. Now there are many nuances with this step.
 8. To setup the skeletion of process, definition file which will host RetrievedChunk dataclass and Retriever protocol is created. ALong with that, one embed file that will transform the question string to vectors by calling .embed()
+
+----------------------------------------------------------------------------------------------------------------------
+
+__branch__ = feat/
+
+1. take a query vector → return the k nearest chunks from Postgres (first station that reads the DB).
+2. Operator = <=> (cosine distance), chosen to match the vector_cosine_ops index — mismatched operator → index skipped → full scan + wrong "closeness."
+3. smaller <=> = more similar → always ORDER BY distance ASC LIMIT k; first row = best match.
+4. Raw text() SQL, not ORM — pgvector's distance operators aren't standard SQL; the ORM can't model nearest-neighbor. (Also fits "no frameworks, every line mine.")
+5. Vector must be passed as a string literal + cast: '[0.1,0.2,...]' bound as :vec, then CAST(:vec AS vector) — a raw Python list won't be recognized.
+6. PgVectorRetriever(session) fulfills the Retriever Protocol from Day 1 (the "real hire" for the "job description").
+7. Rows → RetrievedChunk mapping carries chunk_id, document_id, content, score=distance — breadcrumbs kept for later citations.
+8. Testing needs a controllable embedding space: hand-pick vectors (e.g. [1,0,0,…] vs [-1,0,0,…]) so "nearest" is predictable — random Fake vectors can't be asserted.
+9. conftest.py + db_session fixture gives transaction-per-test + rollback → each test starts clean, leaves no junk (isolation).
+10. Verified: same-direction query returns positive-leaning chunks first, excludes the opposite one, distances ascending.
+
+----------------------------------------------------------------------------------------------------------------------
+
+__branch__ = feat/context-citations
+
+Goal: turn the pile of retrieved chunks into one text block for the LLM + a map of which chunk is which source.
+Why not just "\n".join(contents)? Flattening loses the breadcrumbs — you couldn't tell the LLM "this fact is from source [2]."
+Two dataclasses: Citation (one breadcrumb) + GroundedContext (the whole meal: text + citation list) — bundled so they can't drift apart.
+Citation = label (the [n] the LLM cites) → real chunk_id + document_id. The number is a real pointer, not a guess.
+enumerate(chunks, start=1) is the key trick — the loop index i is the citation label; one source of truth for text and map.
+Text line format: f"[{i}] {chunk.content}"; chunks joined with "\n\n" so the model sees clear boundaries.
+Single pass builds both the numbered text and the parallel citation list → text and map can never disagree.
+Empty chunks → empty GroundedContext("", []) — don't crash; "nothing to ground on" handled gracefully (final behavior decided Day 7).
+Invariant: every [n] the LLM can cite resolves to a real retrieved chunk — citations are traceable, not invented.
+Pure function = pure test: no DB, no async — build_context tested in microseconds (payoff of keeping logic DI'd and FastAPI-free).
