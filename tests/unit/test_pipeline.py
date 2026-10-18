@@ -4,7 +4,7 @@ from uuid import UUID
 import pytest
 from app.embeddings.fake import FakeEmbedder
 from app.query.generator import FakeGenerator
-from app.query.pipeline import QueryPipeline
+from app.query.pipeline import QueryPipeline, NO_CONTEXT_ANSWER
 from app.query.types import RetrievedChunk
 
 DOC = UUID("00000000-0000-0000-0000-000000000001")
@@ -56,4 +56,4 @@ async def test_pipeline_empty_retrieval():
     result = await pipeline.run("anything?", k=5)
 
     assert result.citations == []       # no sources
-    assert "0" in result.answer         # Fake reports 0 sources
+    assert result.answer == NO_CONTEXT_ANSWER         # Fake reports 0 sources
