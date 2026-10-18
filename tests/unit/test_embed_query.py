@@ -13,7 +13,7 @@ async def test_embed_query_returns_one_vector():
     assert all(isinstance(x, float) for x in vec)
 
 
-@pytest.mark.asynciogit
+@pytest.mark.asyncio
 async def test_embed_query_rejects_empty():
     embedder = FakeEmbedder()
     with pytest.raises(ValueError):

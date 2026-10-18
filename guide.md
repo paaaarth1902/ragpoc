@@ -143,3 +143,23 @@ Generator and query pipeline
 1. The generator is responisble for taking the question, combining it with the retrieved context and talking to mock LLM to produce a final and grounded answer
 2. The query pipeline, in-turn is the orchestrator that ties everything we have till now (chunks, contaxt citations and generators) in order and embeds user question, searches db for closest chunks actually builds context with citationsand passes it to generator
 
+----------------------------------------------------------------------------------------------------------------------
+
+__branch__ = feat/query-endpoint
+
+1. The entire query phase boils down to this step, where we build the endpoint that lets user ask question and get result.
+2. All we discussed up until now lives in one plane, which practicaly happens in timeline A.
+3. Now when we discuss Query phase, this lives in different plane which executes in timeline B
+4. So the point is, these two planes operate at different times of the application
+5. Ingestion phase is done pre deploying the application for end users.
+6. The Query plane is activated when user actually posts their question in form of query.
+    - User posts questions which is in string format
+    - After this, the question is converted to vectors (similar to the embedding we observed in ingestion plane)
+    - Important thing is, these vectors are never stored in the database like they are done in ingestion plane.
+    - We use these vectors simply for comaprisons
+    - The generated vectors are passed for comparison with alreay present vectors in DB
+    - This similarity search can be done with various ways, one way I know is cosine similarity.
+    - Objective is to find k closest vectors to the vector generated for question.
+7. The complete orchestration of embedding, retrieveing, building context and finally, generation of answer that merges question + context with SYSTEM_PROMPT and sends to LLM, lives in a pipeline file.
+8. The endpoint that we build in /api/query.py, will call this pipeline file and return the answer along with citations.
+9. In Pipeline, to ensure our aplication doesnt answer any question thats not relevant to docs uploaded, we add a MAX_SCORE and filter out chunks retrieved based on the score comparison with this MAX_SCORE. This MAX_SCORE can be adjusted as needed according to requirement.
