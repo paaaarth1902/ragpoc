@@ -18,7 +18,6 @@ SYSTEM_PROMPT = (
     "Do not use outside knowledge."
 )
 
-
 class OpenAIGenerator:
     """Real LLM answer generator — grounded + citing."""
 

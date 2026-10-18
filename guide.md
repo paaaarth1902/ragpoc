@@ -135,3 +135,11 @@ Single pass builds both the numbered text and the parallel citation list → tex
 Empty chunks → empty GroundedContext("", []) — don't crash; "nothing to ground on" handled gracefully (final behavior decided Day 7).
 Invariant: every [n] the LLM can cite resolves to a real retrieved chunk — citations are traceable, not invented.
 Pure function = pure test: no DB, no async — build_context tested in microseconds (payoff of keeping logic DI'd and FastAPI-free).
+
+----------------------------------------------------------------------------------------------------------------------
+
+Generator and query pipeline
+
+1. The generator is responisble for taking the question, combining it with the retrieved context and talking to mock LLM to produce a final and grounded answer
+2. The query pipeline, in-turn is the orchestrator that ties everything we have till now (chunks, contaxt citations and generators) in order and embeds user question, searches db for closest chunks actually builds context with citationsand passes it to generator
+
