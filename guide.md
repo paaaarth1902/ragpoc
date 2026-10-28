@@ -163,3 +163,28 @@ __branch__ = feat/query-endpoint
 7. The complete orchestration of embedding, retrieveing, building context and finally, generation of answer that merges question + context with SYSTEM_PROMPT and sends to LLM, lives in a pipeline file.
 8. The endpoint that we build in /api/query.py, will call this pipeline file and return the answer along with citations.
 9. In Pipeline, to ensure our aplication doesnt answer any question thats not relevant to docs uploaded, we add a MAX_SCORE and filter out chunks retrieved based on the score comparison with this MAX_SCORE. This MAX_SCORE can be adjusted as needed according to requirement.
+
+----------------------------------------------------------------------------------------------------------------------
+
+__branch__ = feat/re-ranker
+
+1. The k closest chunks we retrieve have one fundamental flaw - we measure distance to be the parameter. But it has proven to give imperfect and sometime outright wrong results.
+2. To cater this, we use reranker as second filteration logic which takes the query and the retrieved chunks and pass them to re-ranker model to generate a score.
+3. This score is the one that is considered while considering which chunk should be prioritised
+
+`User Question`
+    │
+    ▼
+`Embed Query`
+    │
+    ▼
+`Vector Retriever ──> Fetches Top 20 chunks (Fast, Broad Net)`
+    │
+    ▼
+`Re-ranker ────────> Scores & narrows down to Top 5 best chunks (Deep, Precise)`
+    │
+    ▼
+`Build Context ────> Numbered prompt block + citations`
+    │
+    ▼
+`Generator ────────> Final grounded answer`
