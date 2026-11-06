@@ -10,6 +10,10 @@ class RetrievedChunk:
     score: float
     rerank_score: float | None = None
 
+class HybridRetriever(Protocol):
+    async def retrieve_hybrid(self, query_text: str, query_embedding: Sequence[float], k: int) -> list[RetrievedChunk]:
+        pass
+
 class Retriever(Protocol):
     async def retrieve(self, query_embedding: Sequence[float], k: int) -> list[RetrievedChunk]:
         pass

@@ -4,7 +4,7 @@ from app.embeddings.types import Embedder
 from app.query.context import Citation, build_context
 from app.query.embed import embed_query
 from app.query.generator import AnswerGenerator
-from app.query.types import Retriever
+from app.query.types import HybridRetriever
 from app.query.rerank import Reranker
 
 RETRIEVE_K = 20
@@ -19,7 +19,7 @@ class QueryResult:
 class QueryPipeline:
     """Chains: embed -> retrieve -> rerank -> gate -> build_context -> generate."""
 
-    def __init__(self, embedder: Embedder, retriever: Retriever, reranker: Reranker, generator: AnswerGenerator) -> None:
+    def __init__(self, embedder: Embedder, retriever: HybridRetriever, reranker: Reranker, generator: AnswerGenerator) -> None:
         self._embedder = embedder
         self._retriever = retriever
         self._reranker = reranker
@@ -27,7 +27,7 @@ class QueryPipeline:
 
     async def run(self, question: str, k: int = 5) -> QueryResult:
         vector = await embed_query(self._embedder, question)
-        candidates = await self._retriever.retrieve(vector, RETRIEVE_K)
+        candidates = await self._retriever.retrieve_hybrid(question, vector, k=RETRIEVE_K)
 
         ranked = await self._reranker.rerank(question, candidates, top_n=k)
         relevant = [c for c in ranked if (c.rerank_score or 0.0) >= RERANK_FLOOR]
@@ -36,10 +36,8 @@ class QueryPipeline:
             return QueryResult(answer=NO_CONTEXT_ANSWER, citations=[])
 
         context = build_context(relevant)
-        print(f"\n[CONTEXT prompt_block]:\n{context.prompt_block!r}\n")   # ← KEY
 
         answer = await self._generator.generate(question, context)
-        print(f"[LLM ANSWER]: {answer!r}\n")
         used = [c for c in context.citations if f"[{c.label}]" in answer]
 
         return QueryResult(answer=answer, citations=used)
