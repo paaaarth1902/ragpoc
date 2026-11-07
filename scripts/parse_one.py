@@ -1,6 +1,6 @@
 """Parse md file and return structure"""
-from __future__ import annotations
 
+from __future__ import annotations
 import argparse
 from pathlib import Path
 from app.ingestion.loaders.markdown import MarkdownLoader
