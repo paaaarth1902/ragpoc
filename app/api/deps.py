@@ -10,13 +10,15 @@ from app.db.session import get_db_session
 from app.embeddings.openai import OpenAIEmbedder
 from app.embeddings.retry import RetryingEmbedder
 from app.embeddings.types import Embedder
+from app.query.retriever import PgVectorRetriever
 
 from app.query.generator import AnswerGenerator, OpenAIGenerator
 from app.query.hybrid_retriever import HybridRetriever
 from app.query.keyword_retriever import KeywordRetriever
+
 from app.query.rerank import Reranker
 from app.query.rerank_cross_encoder import CrossEncoderReranker
-from app.query.retriever import PgVectorRetriever
+
 
 
 def get_embedder() -> Embedder:

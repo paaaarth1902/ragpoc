@@ -2,11 +2,13 @@ import asyncio
 import os
 from pathlib import Path
 from openai import AsyncOpenAI
+
 from app.embeddings.openai import OpenAIEmbedder
 from app.embeddings.retry import RetryingEmbedder
-from app.ingestion.pipeline import ingest_document
-from dotenv import load_dotenv
 
+from app.ingestion.pipeline import ingest_document
+
+from dotenv import load_dotenv
 load_dotenv()
 
 async def main() -> None:
